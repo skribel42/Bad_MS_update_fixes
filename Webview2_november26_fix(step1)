@@ -1,0 +1,25 @@
+$base = "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView"
+$guid = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+
+# Uninstall any installed version
+Get-ChildItem "$base\Application\*\Installer\setup.exe" -ErrorAction SilentlyContinue | ForEach-Object {
+    Start-Process $_.FullName -ArgumentList "--uninstall --msedgewebview --system-level --force-uninstall" -Wait
+}
+
+# Stop leftover processes
+Get-Process msedgewebview2 -ErrorAction SilentlyContinue | Stop-Process -Force
+
+# Remove leftover registration
+Remove-Item "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\$guid" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\ClientState\$guid" -Recurse -ErrorAction SilentlyContinue
+Remove-Item "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft EdgeWebView" -Recurse -ErrorAction SilentlyContinue
+
+# Set aside leftover files
+if (Test-Path $base) {
+    Rename-Item $base "EdgeWebView.old-$(Get-Date -Format yyyyMMddHHmm)" -ErrorAction SilentlyContinue
+}
+
+# Verify
+if (Test-Path $base) { Write-Output "FAILED: WebView folder still present"; exit 1 }
+Write-Output "Removed. Reboot now."
+exit 0
