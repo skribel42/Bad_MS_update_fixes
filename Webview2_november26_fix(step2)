@@ -1,0 +1,10 @@
+$p = "$env:TEMP\WV2Setup.exe"
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $p -UseBasicParsing
+$r = Start-Process $p -ArgumentList "/silent /install" -Wait -PassThru
+
+if (-not (Test-Path "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application")) {
+    Write-Output "FAILED: runtime not found, installer exit code $($r.ExitCode)"
+    exit 1
+}
+Write-Output "Installed, installer exit code $($r.ExitCode)"
+exit 0
